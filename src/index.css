@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    /* Prevent iOS bounce scroll on body */
+    overscroll-behavior: none;
+  }
+}
+
+@layer utilities {
+  /* iOS safe area helpers */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Tap highlight suppression for native feel */
+  .tap-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
