@@ -1,14 +1,21 @@
+// Count/discrete units — dimensionless, pass through as-is
+const COUNT_UNITS = new Set(['pcs', 'bag', 'bucket', 'pack', 'bottle', 'unit'])
+
+export function isCountUnit(unit) {
+  return COUNT_UNITS.has(unit)
+}
+
 const toGrams = (qty, unit) => {
-  if (unit === 'kg')  return qty * 1000
-  if (unit === 'lb')  return qty * 453.592
-  if (unit === 'pcs') return qty   // dimensionless count — passes through as-is
+  if (unit === 'kg')            return qty * 1000
+  if (unit === 'lb')            return qty * 453.592
+  if (COUNT_UNITS.has(unit))    return qty   // dimensionless count — passes through as-is
   return qty // g
 }
 
 const fromGrams = (grams, unit) => {
-  if (unit === 'kg')  return grams / 1000
-  if (unit === 'lb')  return grams / 453.592
-  if (unit === 'pcs') return grams // dimensionless count
+  if (unit === 'kg')            return grams / 1000
+  if (unit === 'lb')            return grams / 453.592
+  if (COUNT_UNITS.has(unit))    return grams // dimensionless count
   return grams // g
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
-import { calculateRequirements } from '../utils/calculations'
+import { calculateRequirements, isCountUnit } from '../utils/calculations'
 import { exportToPdf } from '../utils/exportPdf'
 import ResultsTable from '../components/Calculator/ResultsTable'
 import Button from '../components/ui/Button'
@@ -15,8 +15,9 @@ export default function CalculatorPage() {
   const [search, setSearch]         = useState('')
 
   const selectedProduct = products.find(p => p.id === productId)
-  const isPcsBased      = selectedProduct?.baseBatchUnit === 'pcs'
-  const effectiveUnit   = isPcsBased ? 'pcs' : desiredUnit
+  const isCountBased    = isCountUnit(selectedProduct?.baseBatchUnit)
+  const isPcsBased      = isCountBased  // kept for backward compat with existing JSX below
+  const effectiveUnit   = isCountBased ? selectedProduct.baseBatchUnit : desiredUnit
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -106,7 +107,7 @@ export default function CalculatorPage() {
                 className="flex-1 px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
                            focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-              {!isPcsBased ? (
+              {!isCountBased ? (
                 <select value={desiredUnit} onChange={e => setDesiredUnit(e.target.value)}
                   className="w-20 px-2 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
                              focus:outline-none focus:ring-2 focus:ring-red-500">
@@ -116,8 +117,8 @@ export default function CalculatorPage() {
                 </select>
               ) : (
                 <div className="w-20 flex items-center justify-center text-sm font-medium
-                                text-gray-500 border border-gray-200 rounded-xl bg-gray-50 select-none">
-                  pcs
+                                text-gray-500 border border-gray-200 rounded-xl bg-gray-50 select-none capitalize">
+                  {selectedProduct.baseBatchUnit}
                 </div>
               )}
             </div>
@@ -134,7 +135,7 @@ export default function CalculatorPage() {
           <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5 gap-2">
             <span className="text-xs md:text-sm text-gray-500 min-w-0">
               {isPcsBased ? (
-                <>Making <span className="font-semibold text-red-700">{parseFloat(desiredQty)} unit{parseFloat(desiredQty) !== 1 ? 's' : ''}</span>
+                <>Making <span className="font-semibold text-red-700 capitalize">{parseFloat(desiredQty)} {selectedProduct.baseBatchUnit}{parseFloat(desiredQty) !== 1 ? 's' : ''}</span>
                 {' '}— ×{(parseFloat(desiredQty) / selectedProduct.baseBatchSize).toFixed(4)}</>
               ) : (
                 <>Scale: <span className="font-semibold text-red-700">×{(

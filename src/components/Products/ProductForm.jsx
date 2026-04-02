@@ -119,7 +119,12 @@ export default function ProductForm({ initial, rawMaterials, onSave, onCancel })
           <option value="kg">kg</option>
           <option value="g">g</option>
           <option value="lb">lb</option>
-          <option value="pcs">pcs (units)</option>
+          <option value="pcs">pcs</option>
+          <option value="bag">Bag</option>
+          <option value="bucket">Bucket</option>
+          <option value="pack">Pack</option>
+          <option value="bottle">Bottle</option>
+          <option value="unit">Unit</option>
         </Select>
       </div>
 

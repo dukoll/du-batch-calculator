@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { DataProvider } from './context/DataContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import Header from './components/Layout/Header'
 import Sidebar from './components/Layout/Sidebar'
 import BottomNav from './components/Layout/BottomNav'
 import LoginPage from './pages/LoginPage'
@@ -39,19 +40,22 @@ function AppShell() {
 
   // Logged in → full app
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <div className="hidden md:flex">
-        <Sidebar />
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+      <Header />
+      <div className="flex flex-1 overflow-hidden">
+        <div className="hidden md:flex">
+          <Sidebar />
+        </div>
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+          <Routes>
+            <Route path="/"              element={<PermGuard perm="calculator"><CalculatorPage /></PermGuard>} />
+            <Route path="/raw-materials" element={<PermGuard perm="rawMaterials"><RawMaterialsPage /></PermGuard>} />
+            <Route path="/products"      element={<PermGuard perm="formulations"><ProductsPage /></PermGuard>} />
+            <Route path="/account"       element={<AccountPage />} />
+            <Route path="*"              element={<DefaultRedirect />} />
+          </Routes>
+        </main>
       </div>
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-        <Routes>
-          <Route path="/"              element={<PermGuard perm="calculator"><CalculatorPage /></PermGuard>} />
-          <Route path="/raw-materials" element={<PermGuard perm="rawMaterials"><RawMaterialsPage /></PermGuard>} />
-          <Route path="/products"      element={<PermGuard perm="formulations"><ProductsPage /></PermGuard>} />
-          <Route path="/account"       element={<AccountPage />} />
-          <Route path="*"              element={<DefaultRedirect />} />
-        </Routes>
-      </main>
       <BottomNav />
     </div>
   )

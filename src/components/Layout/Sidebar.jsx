@@ -38,12 +38,6 @@ export default function Sidebar() {
 
   return (
     <aside className="w-60 shrink-0 bg-white border-r border-gray-200 hidden md:flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 py-4 border-b border-gray-100">
-        <img src="/dukoll-logo.png" alt="DUKOLL" className="h-10 w-auto object-contain" style={{ mixBlendMode: 'multiply' }} />
-        <p className="text-xs text-gray-400 mt-1.5 font-medium tracking-wide">Batch Calculator</p>
-      </div>
-
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {permitted.map(({ to, label, icon }) => (
