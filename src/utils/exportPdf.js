@@ -140,8 +140,25 @@ async function buildPdfDoc(product, desiredQty, desiredUnit, results) {
 
 /** Download the PDF directly to disk. */
 export async function exportToPdf(product, desiredQty, desiredUnit, results) {
-  const doc = await buildPdfDoc(product, desiredQty, desiredUnit, results)
-  doc.save(`${product.name.replace(/\s+/g, '_')}_${formatNum(desiredQty)}${desiredUnit}.pdf`)
+  const doc      = await buildPdfDoc(product, desiredQty, desiredUnit, results)
+  const filename = `${product.name.replace(/\s+/g, '_')}_${formatNum(desiredQty)}${desiredUnit}.pdf`
+
+  // jsPDF's doc.save() uses MIME type application/pdf, which Safari intercepts
+  // and opens in its built-in viewer instead of downloading.
+  // Using application/octet-stream forces the browser to treat it as a binary
+  // file download — this works on Safari (macOS) and all other browsers.
+  const buf  = doc.output('arraybuffer')
+  const blob = new Blob([buf], { type: 'application/octet-stream' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.style.cssText = 'position:fixed;top:-1000px;left:-1000px'
+  document.body.appendChild(a)
+  a.click()
+  // Keep the object URL alive long enough for the download to start,
+  // then clean up to avoid memory leaks.
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 60000)
 }
 
 /**
