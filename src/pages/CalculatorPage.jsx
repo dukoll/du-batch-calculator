@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
 import { calculateRequirements, isCountUnit } from '../utils/calculations'
 import { exportToPdf } from '../utils/exportPdf'
+import { saveHistoryEntry } from '../utils/historyStore'
 import ResultsTable from '../components/Calculator/ResultsTable'
 import Button from '../components/ui/Button'
 import { Select } from '../components/ui/Input'
@@ -32,6 +33,13 @@ export default function CalculatorPage() {
   async function handleExportPdf() {
     if (!selectedProduct || results.length === 0) return
     await exportToPdf(selectedProduct, parseFloat(desiredQty), effectiveUnit, results)
+    // Save to history only after successful PDF export
+    saveHistoryEntry({
+      productName: selectedProduct.name,
+      quantity: parseFloat(desiredQty),
+      unit: effectiveUnit,
+      results,
+    })
   }
 
   const hasResult = results.length > 0

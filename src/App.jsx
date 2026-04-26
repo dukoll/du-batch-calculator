@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { DataProvider } from './context/DataContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Header from './components/Layout/Header'
 import Sidebar from './components/Layout/Sidebar'
 import BottomNav from './components/Layout/BottomNav'
+import HistoryDrawer from './components/History/HistoryDrawer'
 import LoginPage from './pages/LoginPage'
 import CalculatorPage from './pages/CalculatorPage'
 import RawMaterialsPage from './pages/RawMaterialsPage'
@@ -25,6 +26,7 @@ export default function App() {
 
 function AppShell() {
   const { ready, session } = useAuth()
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   // Wait for auth to initialise (seeds default admin)
   if (!ready) {
@@ -41,7 +43,7 @@ function AppShell() {
   // Logged in → full app
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
-      <Header />
+      <Header onHistoryClick={() => setHistoryOpen(true)} />
       <div className="flex flex-1 overflow-hidden">
         <div className="hidden md:flex">
           <Sidebar />
@@ -57,6 +59,7 @@ function AppShell() {
         </main>
       </div>
       <BottomNav />
+      <HistoryDrawer isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
     </div>
   )
 }

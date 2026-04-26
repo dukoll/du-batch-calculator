@@ -21,13 +21,17 @@ async function loadImageAsDataUrl(src, maxW = 300) {
   })
 }
 
-export async function exportToPdf(product, desiredQty, desiredUnit, results) {
-  const doc        = new jsPDF({ compress: true })
-  const pageW      = doc.internal.pageSize.getWidth()   // 210 mm
-  const marginL    = 14
-  const marginR    = 14
-  const usableW    = pageW - marginL - marginR          // 182 mm
-  const date       = new Date().toLocaleDateString('en-GB', {
+/**
+ * Shared PDF builder — returns the jsPDF doc object (does NOT save or open).
+ * Used by both exportToPdf (download) and previewPdfUrl (open in tab).
+ */
+async function buildPdfDoc(product, desiredQty, desiredUnit, results) {
+  const doc     = new jsPDF({ compress: true })
+  const pageW   = doc.internal.pageSize.getWidth()
+  const marginL = 14
+  const marginR = 14
+  const usableW = pageW - marginL - marginR
+  const date    = new Date().toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 
@@ -35,13 +39,12 @@ export async function exportToPdf(product, desiredQty, desiredUnit, results) {
   doc.setFillColor(220, 38, 38)
   doc.rect(0, 0, pageW, 18, 'F')
 
-  // Try to add DUKOLL logo in header (right side, white bg for contrast)
   const logoResult = await loadImageAsDataUrl('/dukoll-logo.png')
   if (logoResult) {
     const logoW = 36
     const logoH = Math.round((logoW / logoResult.ratio) * 10) / 10
     const logoX = pageW - marginR - logoW
-    const logoY = (18 - logoH) / 2          // vertically centred in header band
+    const logoY = (18 - logoH) / 2
     doc.setFillColor(255, 255, 255)
     doc.roundedRect(logoX - 2, logoY - 1.5, logoW + 4, logoH + 3, 2, 2, 'F')
     doc.addImage(logoResult.dataUrl, 'PNG', logoX, logoY, logoW, logoH)
@@ -52,22 +55,20 @@ export async function exportToPdf(product, desiredQty, desiredUnit, results) {
   doc.setTextColor(255, 255, 255)
   doc.text('PRODUCTION NOTE', marginL, 12)
 
-  // ── 2. Product name — large & prominent ─────────────────
+  // ── 2. Product name ──────────────────────────────────────
   doc.setFontSize(22)
   doc.setFont('helvetica', 'bold')
-  doc.setTextColor(15, 23, 42)         // near-black
+  doc.setTextColor(15, 23, 42)
   doc.text(product.name, marginL, 34)
 
-  // Thin accent line under product name
   doc.setDrawColor(220, 38, 38)
   doc.setLineWidth(0.8)
   doc.line(marginL, 38, marginL + usableW, 38)
 
-  // ── 3. Info bar: Batch Quantity (left) | Date (right) ───
+  // ── 3. Info bar ──────────────────────────────────────────
   doc.setFillColor(243, 244, 246)
   doc.roundedRect(marginL, 42, usableW, 14, 3, 3, 'F')
 
-  // Left: label + value for quantity
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(107, 114, 128)
@@ -78,7 +79,6 @@ export async function exportToPdf(product, desiredQty, desiredUnit, results) {
   doc.setTextColor(220, 38, 38)
   doc.text(`${formatNum(desiredQty)} ${desiredUnit}`, marginL + 5, 54.5)
 
-  // Right: label + value for date
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(107, 114, 128)
@@ -89,9 +89,9 @@ export async function exportToPdf(product, desiredQty, desiredUnit, results) {
   doc.setTextColor(15, 23, 42)
   doc.text(date, pageW - marginR - 5, 54.5, { align: 'right' })
 
-  // ── 4. Ingredients table ────────────────────────────────
+  // ── 4. Ingredients table ─────────────────────────────────
   const rows = results.map(r => [
-    r.rawMaterial?.name ?? '—',
+    r.rawMaterial?.name ?? r.rawMaterialName ?? '—',
     formatNum(r.requiredQty),
     r.unit,
   ])
@@ -129,17 +129,26 @@ export async function exportToPdf(product, desiredQty, desiredUnit, results) {
       doc.setTextColor(156, 163, 175)
       doc.text(
         `${results.length} ingredient${results.length !== 1 ? 's' : ''}`,
-        marginL,
-        pageH - 8,
+        marginL, pageH - 8,
       )
-      doc.text(
-        `Page ${data.pageNumber}`,
-        pageW - marginR,
-        pageH - 8,
-        { align: 'right' },
-      )
+      doc.text(`Page ${data.pageNumber}`, pageW - marginR, pageH - 8, { align: 'right' })
     },
   })
 
+  return doc
+}
+
+/** Download the PDF directly to disk. */
+export async function exportToPdf(product, desiredQty, desiredUnit, results) {
+  const doc = await buildPdfDoc(product, desiredQty, desiredUnit, results)
   doc.save(`${product.name.replace(/\s+/g, '_')}_${formatNum(desiredQty)}${desiredUnit}.pdf`)
+}
+
+/**
+ * Returns a blob URL for in-browser preview (open in new tab).
+ * The caller should open the returned URL with window.open(url, '_blank').
+ */
+export async function previewPdfUrl(product, desiredQty, desiredUnit, results) {
+  const doc = await buildPdfDoc(product, desiredQty, desiredUnit, results)
+  return doc.output('bloburl')
 }
