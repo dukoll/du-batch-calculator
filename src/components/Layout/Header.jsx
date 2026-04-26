@@ -23,10 +23,10 @@ export default function Header({ onHistoryClick }) {
       {/* Right side actions */}
       <div className="flex items-center gap-3">
 
-        {/* History button */}
+        {/* History button — desktop only (mobile uses bottom nav) */}
         <button
           onClick={onHistoryClick}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10
+          className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10
             hover:bg-white/20 text-white transition-colors"
           title="Batch History"
         >
@@ -34,7 +34,7 @@ export default function Header({ onHistoryClick }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-medium hidden sm:inline">History</span>
+          <span className="text-sm font-medium">History</span>
         </button>
 
         {/* User */}

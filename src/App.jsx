@@ -58,7 +58,7 @@ function AppShell() {
           </Routes>
         </main>
       </div>
-      <BottomNav />
+      <BottomNav onHistoryClick={() => setHistoryOpen(true)} />
       <HistoryDrawer isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
     </div>
   )

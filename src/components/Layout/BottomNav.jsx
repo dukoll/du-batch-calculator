@@ -35,13 +35,15 @@ const NAV = [
   },
 ]
 
-const AccountIcon = (a) => <svg className="w-6 h-6" fill={a ? 'currentColor' : 'none'} viewBox="0 0 24 24"
-  stroke="currentColor" strokeWidth={a ? 0 : 1.8}>
-  <path strokeLinecap="round" strokeLinejoin="round"
-    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-</svg>
+const HistoryIcon = () => (
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24"
+    stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
 
-export default function BottomNav() {
+export default function BottomNav({ onHistoryClick }) {
   const { can } = useAuth()
   const permitted = NAV.filter(n => can(n.perm))
 
@@ -59,15 +61,15 @@ export default function BottomNav() {
         </NavLink>
       ))}
 
-      {/* Account — always visible */}
-      <NavLink to="/account"
-        className={({ isActive }) => `
-          tap-none flex-1 flex flex-col items-center justify-center gap-0.5
-          pt-2 pb-1 text-xs font-medium transition-colors
-          ${isActive ? 'text-red-600' : 'text-gray-400'}
-        `}>
-        {({ isActive }) => (<>{AccountIcon(isActive)}<span className={isActive ? 'font-semibold' : ''}>Account</span></>)}
-      </NavLink>
+      {/* History — replaces Account on mobile */}
+      <button
+        onClick={onHistoryClick}
+        className="tap-none flex-1 flex flex-col items-center justify-center gap-0.5
+                   pt-2 pb-1 text-xs font-medium text-gray-400 hover:text-red-600 transition-colors"
+      >
+        <HistoryIcon />
+        <span>History</span>
+      </button>
     </nav>
   )
 }
