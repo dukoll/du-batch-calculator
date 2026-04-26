@@ -34,15 +34,21 @@ export default function CalculatorPage() {
 
   async function handleExportPdf() {
     if (!selectedProduct || results.length === 0) return
-    await exportToPdf(selectedProduct, parseFloat(desiredQty), effectiveUnit, results)
-    // Save to history only after successful PDF export
-    saveHistoryEntry({
+
+    // Save history BEFORE triggering the download.
+    // On mobile Safari the anchor.click() used for download can navigate the
+    // current page away, which kills any JS running after it — meaning a
+    // saveHistoryEntry call placed after exportToPdf would never complete.
+    // Saving first ensures the record lands in Supabase regardless.
+    await saveHistoryEntry({
       userId: session?.userId,
       productName: selectedProduct.name,
       quantity: parseFloat(desiredQty),
       unit: effectiveUnit,
       results,
     })
+
+    await exportToPdf(selectedProduct, parseFloat(desiredQty), effectiveUnit, results)
   }
 
   const hasResult = results.length > 0
