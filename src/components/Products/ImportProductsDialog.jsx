@@ -55,7 +55,7 @@ export default function ImportProductsDialog({ open, onClose, onImport, rawMater
   const uniqueMissing = [...new Set(totalMissing)]
 
   return (
-    <Modal open={open} onClose={handleClose} title="Import Formulations" size="xl">
+    <Modal open={open} onClose={handleClose} title="Import Finished Goods" size="xl">
       <div className="space-y-4">
         {/* Template download */}
         <div className="flex items-center justify-between bg-red-50 rounded-lg px-4 py-3">
@@ -111,7 +111,7 @@ export default function ImportProductsDialog({ open, onClose, onImport, rawMater
         {products.length > 0 && !loading && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">
-              Preview — {products.length} formulation{products.length !== 1 ? 's' : ''} found
+              Preview — {products.length} finished good{products.length !== 1 ? 's' : ''} found
             </p>
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {products.map((p, i) => (
@@ -135,7 +135,7 @@ export default function ImportProductsDialog({ open, onClose, onImport, rawMater
         {/* Actions */}
         <div className="flex gap-2 pt-2">
           <Button onClick={handleImport} disabled={products.length === 0} className="flex-1">
-            Import {products.length > 0 ? `${products.length} Formulation${products.length !== 1 ? 's' : ''}` : ''}
+            Import {products.length > 0 ? `${products.length} Finished Good${products.length !== 1 ? 's' : ''}` : ''}
           </Button>
           <Button variant="secondary" onClick={handleClose}>Cancel</Button>
         </div>

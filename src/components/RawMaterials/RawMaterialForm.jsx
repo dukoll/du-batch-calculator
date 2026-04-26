@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import Button from '../ui/Button'
 import Input, { Select } from '../ui/Input'
+import CategoryCombobox from '../ui/CategoryCombobox'
 
-const empty = { name: '', unit: 'kg', costPerUnit: '' }
+const empty = { name: '', unit: 'kg', costPerUnit: '', category: '' }
 
 export default function RawMaterialForm({ initial, onSave, onCancel }) {
   const [form, setForm] = useState(initial ?? empty)
@@ -17,7 +18,8 @@ export default function RawMaterialForm({ initial, onSave, onCancel }) {
 
   function validate() {
     const e = {}
-    if (!form.name.trim()) e.name = 'Name is required'
+    if (!form.name.trim())     e.name = 'Name is required'
+    if (!form.category.trim()) e.category = 'Category is required'
     const cost = parseFloat(form.costPerUnit)
     if (isNaN(cost) || cost < 0) e.costPerUnit = 'Enter a valid cost ≥ 0'
     return e
@@ -27,7 +29,7 @@ export default function RawMaterialForm({ initial, onSave, onCancel }) {
     ev.preventDefault()
     const e = validate()
     if (Object.keys(e).length) { setErrors(e); return }
-    onSave({ name: form.name.trim(), unit: form.unit, costPerUnit: parseFloat(form.costPerUnit) })
+    onSave({ name: form.name.trim(), unit: form.unit, costPerUnit: parseFloat(form.costPerUnit), category: form.category.trim() })
   }
 
   return (
@@ -38,6 +40,11 @@ export default function RawMaterialForm({ initial, onSave, onCancel }) {
         value={form.name}
         onChange={set('name')}
         error={errors.name}
+      />
+      <CategoryCombobox
+        value={form.category}
+        onChange={val => setForm(f => ({ ...f, category: val }))}
+        error={errors.category}
       />
       <Select label="Unit" value={form.unit} onChange={set('unit')}>
         <option value="kg">kg</option>

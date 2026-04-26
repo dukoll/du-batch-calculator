@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
+import { useAuth } from '../context/AuthContext'
 import { calculateRequirements, isCountUnit } from '../utils/calculations'
 import { exportToPdf } from '../utils/exportPdf'
 import { saveHistoryEntry } from '../utils/historyStore'
@@ -9,6 +10,7 @@ import { Select } from '../components/ui/Input'
 
 export default function CalculatorPage() {
   const { products, rawMaterials } = useData()
+  const { session } = useAuth()
 
   const [productId, setProductId]   = useState('')
   const [desiredQty, setDesiredQty] = useState('')
@@ -35,6 +37,7 @@ export default function CalculatorPage() {
     await exportToPdf(selectedProduct, parseFloat(desiredQty), effectiveUnit, results)
     // Save to history only after successful PDF export
     saveHistoryEntry({
+      userId: session?.id,
       productName: selectedProduct.name,
       quantity: parseFloat(desiredQty),
       unit: effectiveUnit,
@@ -51,7 +54,7 @@ export default function CalculatorPage() {
       <div className="mb-5">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">Calculator</h1>
         <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-          Select a formulation, enter quantity, see required raw materials.
+          Select a finished good, enter quantity, see required raw materials.
         </p>
       </div>
 
@@ -60,10 +63,10 @@ export default function CalculatorPage() {
 
         {/* Formulation selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Formulation</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Finished Good</label>
           {products.length === 0 ? (
             <div className="border border-dashed border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-400">
-              No formulations yet.{' '}
+              No finished goods yet.{' '}
               <a href="/products" className="text-red-600">Add one first.</a>
             </div>
           ) : (
@@ -87,7 +90,7 @@ export default function CalculatorPage() {
                 className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
                            focus:outline-none focus:ring-2 focus:ring-red-500"
               >
-                <option value="">— Select a formulation —</option>
+                <option value="">— Select a finished good —</option>
                 {filteredProducts.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.name}{p.category ? ` (${p.category})` : ''} — {p.baseBatchSize} {p.baseBatchUnit}
@@ -176,7 +179,7 @@ export default function CalculatorPage() {
         <ResultsTable results={results} desiredQty={parseFloat(desiredQty)} desiredUnit={effectiveUnit} />
       ) : selectedProduct && desiredQty && parseFloat(desiredQty) > 0 ? (
         <div className="text-center py-12 text-gray-400 text-sm">
-          This formulation has no ingredients configured yet.
+          This finished good has no ingredients configured yet.
         </div>
       ) : (
         <div className="text-center py-12 md:py-16">
@@ -187,7 +190,7 @@ export default function CalculatorPage() {
                    M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
           </div>
-          <p className="text-gray-500 font-medium text-sm md:text-base">Select a formulation to get started</p>
+          <p className="text-gray-500 font-medium text-sm md:text-base">Select a finished good to get started</p>
           <p className="text-gray-400 text-xs md:text-sm mt-1">Then enter your desired output quantity.</p>
         </div>
       )}

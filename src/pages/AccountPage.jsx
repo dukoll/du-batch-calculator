@@ -253,7 +253,7 @@ function UserCard({ user, isSelf, isAdmin, readOnly, onEdit, onDelete }) {
   const permLabels = [
     perms.calculator    && 'Calculator',
     perms.rawMaterials  && 'Raw Materials',
-    perms.formulations  && 'Formulations',
+    perms.formulations  && 'Finished Goods',
   ].filter(Boolean)
 
   return (
@@ -313,7 +313,7 @@ function UserCard({ user, isSelf, isAdmin, readOnly, onEdit, onDelete }) {
 const PERM_OPTIONS = [
   { key: 'calculator',   label: 'Calculator' },
   { key: 'rawMaterials', label: 'Raw Materials' },
-  { key: 'formulations', label: 'Formulations' },
+  { key: 'formulations', label: 'Finished Goods' },
 ]
 
 function UserForm({ initial, onSave, onCancel }) {

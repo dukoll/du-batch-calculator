@@ -22,7 +22,7 @@ const NAV = [
     </svg>,
   },
   {
-    to: '/products', perm: 'formulations', label: 'Formulations',
+    to: '/products', perm: 'formulations', label: 'Finished Goods',
     icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
@@ -31,6 +31,14 @@ const NAV = [
     </svg>,
   },
 ]
+
+const HISTORY_NAV = {
+  to: '/history', label: 'History',
+  icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>,
+}
 
 export default function Sidebar() {
   const { can, session } = useAuth()
@@ -49,6 +57,14 @@ export default function Sidebar() {
             {icon}{label}
           </NavLink>
         ))}
+        {/* History — always visible */}
+        <NavLink to={HISTORY_NAV.to}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+             ${isActive ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
+          }>
+          {HISTORY_NAV.icon}{HISTORY_NAV.label}
+        </NavLink>
       </nav>
 
       {/* Account link */}

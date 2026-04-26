@@ -1,43 +1,49 @@
-const STORAGE_KEY = 'du_batch_history'
+import { supabase } from '../lib/supabase'
 
 /**
- * Save a new batch history entry (called after PDF export).
- * Stores only what's needed to regenerate the PDF.
+ * Save a batch history entry to Supabase.
+ * Called after a successful PDF export in CalculatorPage.
  */
-export function saveHistoryEntry({ productName, quantity, unit, results }) {
+export async function saveHistoryEntry({ userId, productName, quantity, unit, results }) {
   const entry = {
-    id: Date.now().toString(),
-    timestamp: new Date().toISOString(),
-    productName,
+    user_id: userId,
+    product_name: productName,
     quantity,
     unit,
     results: results.map(r => ({
-      rawMaterialName: r.rawMaterial?.name ?? '—',
+      rawMaterialName: r.rawMaterial?.name ?? r.rawMaterialName ?? '—',
       requiredQty: r.requiredQty,
       unit: r.unit,
     })),
   }
-  const existing = getHistory()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([entry, ...existing]))
-  return entry
+  const { data, error } = await supabase
+    .from('batch_history')
+    .insert(entry)
+    .select()
+    .single()
+  if (error) console.error('History save error:', error)
+  return data
 }
 
-/** Returns all history entries, newest first. */
-export function getHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-  } catch {
-    return []
-  }
+/** Fetch all history entries for a user, newest first. */
+export async function fetchHistory(userId) {
+  const { data, error } = await supabase
+    .from('batch_history')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) { console.error('History fetch error:', error); return [] }
+  return data ?? []
 }
 
-/** Delete a single entry by id. */
-export function deleteHistoryEntry(id) {
-  const updated = getHistory().filter(e => e.id !== id)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+/** Delete a single history entry by id. */
+export async function deleteHistoryEntry(id) {
+  const { error } = await supabase.from('batch_history').delete().eq('id', id)
+  if (error) console.error('History delete error:', error)
 }
 
-/** Wipe all history. */
-export function clearHistory() {
-  localStorage.removeItem(STORAGE_KEY)
+/** Delete all history entries for a user. */
+export async function clearHistory(userId) {
+  const { error } = await supabase.from('batch_history').delete().eq('user_id', userId)
+  if (error) console.error('History clear error:', error)
 }

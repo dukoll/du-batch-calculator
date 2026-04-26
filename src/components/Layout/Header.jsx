@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
-export default function Header({ onHistoryClick }) {
+export default function Header() {
   const { session } = useAuth()
 
   return (
@@ -23,19 +23,20 @@ export default function Header({ onHistoryClick }) {
       {/* Right side actions */}
       <div className="flex items-center gap-3">
 
-        {/* History button — desktop only (mobile uses bottom nav) */}
-        <button
-          onClick={onHistoryClick}
-          className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10
-            hover:bg-white/20 text-white transition-colors"
-          title="Batch History"
+        {/* History link — desktop only (mobile uses bottom nav) */}
+        <NavLink
+          to="/history"
+          className={({ isActive }) =>
+            `hidden md:flex items-center gap-2 px-3 py-2 rounded-xl transition-colors
+             ${isActive ? 'bg-white/25 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`
+          }
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="text-sm font-medium">History</span>
-        </button>
+        </NavLink>
 
         {/* User */}
         <NavLink

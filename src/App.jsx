@@ -1,16 +1,16 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { DataProvider } from './context/DataContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Header from './components/Layout/Header'
 import Sidebar from './components/Layout/Sidebar'
 import BottomNav from './components/Layout/BottomNav'
-import HistoryDrawer from './components/History/HistoryDrawer'
 import LoginPage from './pages/LoginPage'
 import CalculatorPage from './pages/CalculatorPage'
 import RawMaterialsPage from './pages/RawMaterialsPage'
 import ProductsPage from './pages/ProductsPage'
 import AccountPage from './pages/AccountPage'
+import HistoryPage from './pages/HistoryPage'
 
 export default function App() {
   return (
@@ -26,7 +26,6 @@ export default function App() {
 
 function AppShell() {
   const { ready, session } = useAuth()
-  const [historyOpen, setHistoryOpen] = useState(false)
 
   // Wait for auth to initialise (seeds default admin)
   if (!ready) {
@@ -43,7 +42,7 @@ function AppShell() {
   // Logged in → full app
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
-      <Header onHistoryClick={() => setHistoryOpen(true)} />
+      <Header />
       <div className="flex flex-1 overflow-hidden">
         <div className="hidden md:flex">
           <Sidebar />
@@ -53,13 +52,13 @@ function AppShell() {
             <Route path="/"              element={<PermGuard perm="calculator"><CalculatorPage /></PermGuard>} />
             <Route path="/raw-materials" element={<PermGuard perm="rawMaterials"><RawMaterialsPage /></PermGuard>} />
             <Route path="/products"      element={<PermGuard perm="formulations"><ProductsPage /></PermGuard>} />
+            <Route path="/history"       element={<HistoryPage />} />
             <Route path="/account"       element={<AccountPage />} />
             <Route path="*"              element={<DefaultRedirect />} />
           </Routes>
         </main>
       </div>
-      <BottomNav onHistoryClick={() => setHistoryOpen(true)} />
-      <HistoryDrawer isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <BottomNav />
     </div>
   )
 }

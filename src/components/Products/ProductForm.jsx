@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Button from '../ui/Button'
 import Input, { Select } from '../ui/Input'
 import IngredientRow from './IngredientRow'
+import CategoryCombobox from '../ui/CategoryCombobox'
 
 const emptyIngredient = () => ({ rawMaterialId: '', quantity: '', unit: 'kg' })
 
@@ -42,7 +43,8 @@ export default function ProductForm({ initial, rawMaterials, onSave, onCancel })
 
   function validate() {
     const e = {}
-    if (!form.name.trim()) e.name = 'Name is required'
+    if (!form.name.trim())     e.name = 'Name is required'
+    if (!form.category.trim()) e.category = 'Category is required'
     const bs = parseFloat(form.baseBatchSize)
     if (isNaN(bs) || bs <= 0) e.baseBatchSize = 'Enter a valid batch size > 0'
     if (form.ingredients.length === 0) e.ingredients = 'Add at least one ingredient'
@@ -88,11 +90,10 @@ export default function ProductForm({ initial, rawMaterials, onSave, onCancel })
           onChange={setField('name')}
           error={errors.name}
         />
-        <Input
-          label="Category (optional)"
-          placeholder="e.g. Beverages"
+        <CategoryCombobox
           value={form.category}
-          onChange={setField('category')}
+          onChange={val => setForm(f => ({ ...f, category: val }))}
+          error={errors.category}
         />
       </div>
 
@@ -167,7 +168,7 @@ export default function ProductForm({ initial, rawMaterials, onSave, onCancel })
       </div>
 
       <div className="flex gap-2 pt-2 border-t border-gray-100">
-        <Button type="submit" className="flex-1">Save Formulation</Button>
+        <Button type="submit" className="flex-1">Save Finished Good</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
       </div>
     </form>

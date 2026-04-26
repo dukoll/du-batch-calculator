@@ -24,7 +24,7 @@ const NAV = [
     </svg>,
   },
   {
-    to: '/products', perm: 'formulations', label: 'Formulas',
+    to: '/products', perm: 'formulations', label: 'Goods',
     icon: (a) => <svg className="w-6 h-6" fill={a ? 'currentColor' : 'none'} viewBox="0 0 24 24"
       stroke="currentColor" strokeWidth={a ? 0 : 1.8}>
       <path strokeLinecap="round" strokeLinejoin="round"
@@ -35,15 +35,7 @@ const NAV = [
   },
 ]
 
-const HistoryIcon = () => (
-  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24"
-    stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-)
-
-export default function BottomNav({ onHistoryClick }) {
+export default function BottomNav() {
   const { can } = useAuth()
   const permitted = NAV.filter(n => can(n.perm))
 
@@ -61,15 +53,24 @@ export default function BottomNav({ onHistoryClick }) {
         </NavLink>
       ))}
 
-      {/* History — replaces Account on mobile */}
-      <button
-        onClick={onHistoryClick}
-        className="tap-none flex-1 flex flex-col items-center justify-center gap-0.5
-                   pt-2 pb-1 text-xs font-medium text-gray-400 hover:text-red-600 transition-colors"
-      >
-        <HistoryIcon />
-        <span>History</span>
-      </button>
+      {/* History — NavLink to /history page */}
+      <NavLink to="/history"
+        className={({ isActive }) => `
+          tap-none flex-1 flex flex-col items-center justify-center gap-0.5
+          pt-2 pb-1 text-xs font-medium transition-colors
+          ${isActive ? 'text-red-600' : 'text-gray-400'}
+        `}>
+        {({ isActive }) => (
+          <>
+            <svg className="w-6 h-6" fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24"
+              stroke="currentColor" strokeWidth={isActive ? 0 : 1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className={isActive ? 'font-semibold' : ''}>History</span>
+          </>
+        )}
+      </NavLink>
     </nav>
   )
 }

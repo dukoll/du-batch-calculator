@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
 import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
@@ -17,11 +17,31 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState(null)
   const [importOpen, setImportOpen]         = useState(false)
   const [deleteTarget, setDeleteTarget]     = useState(null)
+  const [collapsed, setCollapsed]           = useState({})
 
   const filtered = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.category ?? '').toLowerCase().includes(search.toLowerCase())
   )
+
+  // Group filtered products by category, sorted alphabetically; Uncategorized last
+  const groups = useMemo(() => {
+    const map = {}
+    filtered.forEach(p => {
+      const cat = p.category?.trim() || 'Uncategorized'
+      if (!map[cat]) map[cat] = []
+      map[cat].push(p)
+    })
+    return Object.entries(map).sort(([a], [b]) => {
+      if (a === 'Uncategorized') return 1
+      if (b === 'Uncategorized') return -1
+      return a.localeCompare(b)
+    })
+  }, [filtered])
+
+  function toggleGroup(cat) {
+    setCollapsed(prev => ({ ...prev, [cat]: !prev[cat] }))
+  }
 
   function openAdd()  { setEditingProduct(null); setFormOpen(true) }
   function openEdit(p) { setEditingProduct(p);   setFormOpen(true) }
@@ -47,7 +67,7 @@ export default function ProductsPage() {
       {/* ── Page header ── */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Formulations</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Finished Goods</h1>
           <p className="text-xs md:text-sm text-gray-500 mt-0.5">
             {products.length} product{products.length !== 1 ? 's' : ''} stored
           </p>
@@ -58,7 +78,7 @@ export default function ProductsPage() {
             <UploadIcon /> Import Excel
           </Button>
           <Button onClick={openAdd}>
-            <PlusIcon /> Add Formulation
+            <PlusIcon /> Add Finished Good
           </Button>
         </div>
       </div>
@@ -66,7 +86,7 @@ export default function ProductsPage() {
       {/* ── Search ── */}
       <div className="relative mb-4">
         <SearchIcon />
-        <input type="text" placeholder="Search formulations…" value={search}
+        <input type="text" placeholder="Search by name or category…" value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
                      focus:outline-none focus:ring-2 focus:ring-red-500" />
@@ -94,27 +114,58 @@ export default function ProductsPage() {
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
                  M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <p className="text-sm">{search ? 'No formulations match.' : 'No formulations yet. Add one or import.'}</p>
+          <p className="text-sm">{search ? 'No finished goods match.' : 'No finished goods yet. Add one or import.'}</p>
         </div>
       ) : (
-        /* ── Responsive grid — 1 col mobile, 2 col sm, 3 col lg ── */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {filtered.map(p => (
-            <ProductCard
-              key={p.id}
-              product={p}
-              rawMaterials={rawMaterials}
-              onEdit={() => openEdit(p)}
-              onDuplicate={() => openDuplicate(p.id)}
-              onDelete={() => setDeleteTarget(p)}
-            />
+        <div className="space-y-3">
+          {groups.map(([cat, items]) => (
+            <div key={cat}>
+              {/* Category header — collapsible */}
+              <button
+                type="button"
+                onClick={() => toggleGroup(cat)}
+                className="w-full flex items-center justify-between px-4 py-2.5
+                           bg-gray-50 border border-gray-200 rounded-xl
+                           hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <svg
+                    className={`w-3.5 h-3.5 text-gray-400 transition-transform ${collapsed[cat] ? '-rotate-90' : ''}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <span className="text-sm font-semibold text-gray-700">{cat}</span>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full
+                                   bg-gray-200 text-xs font-medium text-gray-500">
+                    {items.length}
+                  </span>
+                </div>
+              </button>
+
+              {/* Product cards grid (expanded) */}
+              {!collapsed[cat] && (
+                <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {items.map(p => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      rawMaterials={rawMaterials}
+                      onEdit={() => openEdit(p)}
+                      onDuplicate={() => openDuplicate(p.id)}
+                      onDelete={() => setDeleteTarget(p)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
 
       {/* ── Modals ── */}
       <Modal open={formOpen} onClose={() => setFormOpen(false)} size="lg"
-        title={editingProduct?.id ? 'Edit Formulation' : editingProduct ? 'Duplicate Formulation' : 'New Formulation'}>
+        title={editingProduct?.id ? 'Edit Finished Good' : editingProduct ? 'Duplicate Finished Good' : 'New Finished Good'}>
         <ProductForm initial={editingProduct} rawMaterials={rawMaterials}
           onSave={handleSave} onCancel={() => setFormOpen(false)} />
       </Modal>
@@ -122,7 +173,7 @@ export default function ProductsPage() {
       <ImportProductsDialog open={importOpen} onClose={() => setImportOpen(false)}
         onImport={bulkAddProducts} rawMaterials={rawMaterials} />
 
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Formulation" size="sm">
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Finished Good" size="sm">
         <p className="text-sm text-gray-600 mb-5">
           Are you sure you want to delete <span className="font-semibold">{deleteTarget?.name}</span>?
           This cannot be undone.
