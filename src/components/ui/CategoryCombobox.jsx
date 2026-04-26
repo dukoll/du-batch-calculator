@@ -23,12 +23,17 @@ export default function CategoryCombobox({ value, onChange, error }) {
     return () => document.removeEventListener('mousedown', handle)
   }, [])
 
-  const filtered = categories.filter(c =>
-    c.toLowerCase().includes(input.toLowerCase())
+  // When the current input exactly matches a saved category (e.g. editing an
+  // existing product), show ALL categories so the user can pick a different one.
+  // Only filter when the user is mid-type with a value that isn't an exact match.
+  const isExactMatch = categories.some(
+    c => c.toLowerCase() === input.trim().toLowerCase()
   )
+  const filtered = isExactMatch
+    ? categories
+    : categories.filter(c => c.toLowerCase().includes(input.toLowerCase()))
 
-  const showCreate = input.trim() !== '' &&
-    !categories.some(c => c.toLowerCase() === input.trim().toLowerCase())
+  const showCreate = input.trim() !== '' && !isExactMatch
 
   function select(name) {
     setInput(name)

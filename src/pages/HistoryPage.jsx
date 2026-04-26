@@ -30,21 +30,31 @@ export default function HistoryPage() {
   const [confirmClear, setConfirmClear] = useState(false)
 
   const load = useCallback(async () => {
-    if (!session?.id) return
+    if (!session?.userId) return
     setLoading(true)
-    const data = await fetchHistory(session.id)
+    const data = await fetchHistory(session.userId)
     setEntries(data)
     setLoading(false)
-  }, [session?.id])
+  }, [session?.userId])
 
   useEffect(() => { load() }, [load])
 
   async function handlePreview(entry) {
+    // Open the tab synchronously (before any await) so mobile browsers don't
+    // block it as a popup. We'll redirect it to the blob URL once ready.
+    const tab = window.open('', '_blank')
     setLoadingId(entry.id + '_preview')
     try {
       const { product, quantity, unit, results } = entryToExportArgs(entry)
       const url = await previewPdfUrl(product, quantity, unit, results)
-      window.open(url, '_blank')
+      if (tab) {
+        tab.location.href = url
+      } else {
+        // Fallback: some browsers still block — navigate current window
+        window.location.href = url
+      }
+    } catch (e) {
+      if (tab) tab.close()
     } finally { setLoadingId(null) }
   }
 

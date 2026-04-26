@@ -37,7 +37,7 @@ export default function CalculatorPage() {
     await exportToPdf(selectedProduct, parseFloat(desiredQty), effectiveUnit, results)
     // Save to history only after successful PDF export
     saveHistoryEntry({
-      userId: session?.id,
+      userId: session?.userId,
       productName: selectedProduct.name,
       quantity: parseFloat(desiredQty),
       unit: effectiveUnit,
