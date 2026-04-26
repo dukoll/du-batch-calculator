@@ -6,15 +6,15 @@ export default function Header({ onHistoryClick }) {
   const { session } = useAuth()
 
   return (
-    <header className="shrink-0 h-24 bg-red-700 flex items-center justify-between px-5 md:px-7 z-50">
+    <header className="shrink-0 h-[72px] bg-red-700 flex items-center justify-between px-5 md:px-7 z-50">
       {/* Logo + App Name */}
       <div className="flex items-center gap-4">
         <img
           src="/dukoll-logo.png"
           alt="DUKOLL"
-          className="h-20 w-auto object-contain brightness-0 invert"
+          className="h-[60px] w-auto object-contain brightness-0 invert"
         />
-        <span className="w-px h-14 bg-red-400 shrink-0" />
+        <span className="w-px h-10 bg-red-400 shrink-0" />
         <span className="text-white text-lg font-bold tracking-wide">
           DU Batch Calculator
         </span>
