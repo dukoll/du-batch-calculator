@@ -31,25 +31,43 @@ export function AuthProvider({ children }) {
   // ── Load users from Supabase, seed admin if first run ─────
   useEffect(() => {
     async function init() {
-      const { data } = await supabase.from('users').select('*')
-      const userList = data ?? []
+      // Race the Supabase fetch against a 10-second timeout so the app never
+      // hangs forever on slow/mobile networks. setReady(true) is in finally
+      // so it always fires regardless of success or failure.
+      try {
+        const fetchUsers = supabase.from('users').select('*')
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth init timed out')), 10000)
+        )
+        const { data, error } = await Promise.race([fetchUsers, timeoutPromise])
 
-      if (userList.length === 0) {
-        const hash = await hashPassword(DEFAULT_ADMIN.rawPassword)
-        const { data: newUser } = await supabase.from('users')
-          .insert({
-            name: DEFAULT_ADMIN.name,
-            username: DEFAULT_ADMIN.username,
-            password_hash: hash,
-            role: 'admin',
-            permissions: ADMIN_PERMISSIONS,
-          })
-          .select().single()
-        if (newUser) setUsers([toUser(newUser)])
-      } else {
-        setUsers(userList.map(toUser))
+        if (error) throw error
+
+        const userList = data ?? []
+
+        if (userList.length === 0) {
+          const hash = await hashPassword(DEFAULT_ADMIN.rawPassword)
+          const { data: newUser } = await supabase.from('users')
+            .insert({
+              name: DEFAULT_ADMIN.name,
+              username: DEFAULT_ADMIN.username,
+              password_hash: hash,
+              role: 'admin',
+              permissions: ADMIN_PERMISSIONS,
+            })
+            .select().single()
+          if (newUser) setUsers([toUser(newUser)])
+        } else {
+          setUsers(userList.map(toUser))
+        }
+      } catch (err) {
+        // Network failure or timeout — let the app open anyway.
+        // If the user has a session in localStorage they stay logged in;
+        // if not, they'll see the login page and can try again.
+        console.error('Auth init error:', err.message)
+      } finally {
+        setReady(true)
       }
-      setReady(true)
     }
     init()
   }, [])
