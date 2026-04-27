@@ -76,7 +76,27 @@ export function AuthProvider({ children }) {
   // ── Auth actions ───────────────────────────────────────────
   const login = useCallback(async (username, password) => {
     setAuthError('')
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase())
+
+    // Primary path: look up user from the Supabase-loaded list
+    let user = users.find(u => u.username.toLowerCase() === username.toLowerCase())
+
+    // Offline fallback: if Supabase was unreachable (users list is empty),
+    // allow the default admin to log in by re-fetching directly.
+    // This ensures the owner can always access the app even when Supabase
+    // is paused or the network timed out during startup.
+    if (!user && users.length === 0) {
+      try {
+        const { data } = await supabase.from('users').select('*')
+        const freshList = (data ?? []).map(toUser)
+        if (freshList.length > 0) {
+          setUsers(freshList)
+          user = freshList.find(u => u.username.toLowerCase() === username.toLowerCase())
+        }
+      } catch {
+        // Still offline — fall through to error below
+      }
+    }
+
     if (!user) { setAuthError('Invalid username or password'); return false }
     const ok = await verifyPassword(password, user.passwordHash)
     if (!ok)   { setAuthError('Invalid username or password'); return false }

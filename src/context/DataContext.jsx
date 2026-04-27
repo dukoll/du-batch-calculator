@@ -20,18 +20,28 @@ export function DataProvider({ children }) {
   const [rawMaterials, setRawMaterials] = useState([])
   const [products, setProducts]         = useState([])
   const [categories, setCategories]     = useState([])
+  const [dataError, setDataError]       = useState(null)
 
   // ── Initial load ───────────────────────────────────────────
   useEffect(() => {
     async function load() {
-      const [rmRes, prodRes, catRes] = await Promise.all([
-        supabase.from('raw_materials').select('*').order('name'),
-        supabase.from('products').select('*, ingredients(*)').order('name'),
-        supabase.from('categories').select('name').order('name'),
-      ])
-      if (rmRes.data)   setRawMaterials(rmRes.data.map(toRM))
-      if (prodRes.data) setProducts(prodRes.data.map(toProduct))
-      if (catRes.data)  setCategories(catRes.data.map(c => c.name))
+      try {
+        const [rmRes, prodRes, catRes] = await Promise.all([
+          supabase.from('raw_materials').select('*').order('name'),
+          supabase.from('products').select('*, ingredients(*)').order('name'),
+          supabase.from('categories').select('name').order('name'),
+        ])
+        if (rmRes.error)   throw rmRes.error
+        if (prodRes.error) throw prodRes.error
+        if (catRes.error)  throw catRes.error
+        if (rmRes.data)   setRawMaterials(rmRes.data.map(toRM))
+        if (prodRes.data) setProducts(prodRes.data.map(toProduct))
+        if (catRes.data)  setCategories(catRes.data.map(c => c.name))
+        setDataError(null)
+      } catch (err) {
+        console.error('Data load error:', err.message)
+        setDataError(err.message ?? 'Could not connect to database')
+      }
     }
     load()
   }, [])
@@ -150,7 +160,7 @@ export function DataProvider({ children }) {
 
   return (
     <DataContext.Provider value={{
-      rawMaterials, products, categories,
+      rawMaterials, products, categories, dataError,
       addRawMaterial, updateRawMaterial, deleteRawMaterial, bulkAddRawMaterials,
       addProduct, updateProduct, deleteProduct, duplicateProduct, bulkAddProducts,
     }}>
