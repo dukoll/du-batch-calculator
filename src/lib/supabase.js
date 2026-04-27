@@ -1,19 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey  = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Wrap fetch with a timeout so a paused/unreachable Supabase instance
-// (free tier pauses after ~7 days of inactivity) never hangs the app
-// indefinitely. 8 s is enough for a slow cold-start; short enough that
-// the user sees an error quickly rather than a forever-spinner.
-function fetchWithTimeout(input, init) {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 8000)
-  return fetch(input, { ...init, signal: controller.signal })
-    .finally(() => clearTimeout(timer))
-}
+// NOTE: Do NOT pass a custom fetch with an AbortController here.
+// The Supabase JS client already manages its own internal AbortSignals per
+// request. Wrapping fetch and overwriting `init.signal` causes every request
+// to abort immediately with "AbortError: signal is aborted without reason"
+// because the two controllers conflict.
+//
+// The app already handles slow/unreachable Supabase gracefully:
+//   - AuthContext.init() has try/catch + finally { setReady(true) }
+//   - DataContext has the same pattern
+// So the UI never hangs; it just shows the login page if Supabase is down.
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  global: { fetch: fetchWithTimeout },
-})
+export const supabase = createClient(supabaseUrl, supabaseKey)
