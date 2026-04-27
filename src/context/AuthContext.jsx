@@ -31,16 +31,16 @@ export function AuthProvider({ children }) {
   // ── Load users from Supabase, seed admin if first run ─────
   useEffect(() => {
     async function init() {
-      // Race the Supabase fetch against a 10-second timeout so the app never
-      // hangs forever on slow/mobile networks. setReady(true) is in finally
-      // so it always fires regardless of success or failure.
-      try {
-        const fetchUsers = supabase.from('users').select('*')
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Auth init timed out')), 10000)
-        )
-        const { data, error } = await Promise.race([fetchUsers, timeoutPromise])
+      // Fast path: if a valid session is already in localStorage, mark the
+      // app as ready immediately — no Supabase round-trip needed just to show
+      // the UI. The users list and all data still load in the background.
+      const stored = localStorage.getItem('fc_session')
+      if (stored && stored !== 'null') {
+        setReady(true)
+      }
 
+      try {
+        const { data, error } = await supabase.from('users').select('*')
         if (error) throw error
 
         const userList = data ?? []
@@ -61,11 +61,12 @@ export function AuthProvider({ children }) {
           setUsers(userList.map(toUser))
         }
       } catch (err) {
-        // Network failure or timeout — let the app open anyway.
-        // If the user has a session in localStorage they stay logged in;
-        // if not, they'll see the login page and can try again.
+        // Network failure — log it. The app is already showing (or will show
+        // the login page) via setReady(true) in finally below.
         console.error('Auth init error:', err.message)
       } finally {
+        // Always mark ready — covers the no-session case where fast-path
+        // above didn't fire.
         setReady(true)
       }
     }
